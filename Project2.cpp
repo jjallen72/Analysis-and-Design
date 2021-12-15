@@ -267,8 +267,12 @@ void BinarySearchTree::inOrder(Node* node) {
     // FixMe (9): Pre order root
     if (node == NULL)
         return;
+    //recursively display the left side of the three 
     inOrder(node->left);
+    // print out the current node 
     displayCourse(node->course, this);
+
+    // recursively display the right side of the tree
     inOrder(node->right);
 }
 void BinarySearchTree::postOrder(Node* node) {
@@ -303,7 +307,10 @@ void BinarySearchTree::preOrder(Node* node) {
  * @param bid struct containing the bid info
  */
 void displayCourse(Course *c, BinarySearchTree *bst) {
+    // display the code and the course title in one line 
     cout << c->code << ": " << c->title << endl;
+
+    // in the next 0 or more lines, display a prerequisite and its correponding title.   Place a tab in front of the code to signify that it is a prerequisite 
     for (string pr : c->pre_reqs) {
         cout << "\t" <<  pr << "  (" << bst->Search(pr)->title << ")" << endl;
     }
@@ -317,26 +324,41 @@ void displayCourse(Course *c, BinarySearchTree *bst) {
  * @param csvPath the path to the CSV file to load
  * @return a container holding all the bids read
  */
-void loadBids(string filePath, BinarySearchTree* bst) {
+void loadCourses(string filePath, BinarySearchTree* bst) {
     cout << "Loading  file " << endl;
     string line;
     ifstream file(filePath);
 
+    //create vector to hold the courses, will use it at the end of function to verify validity of each prerequisite included in file 
     vector<Course *> check_pre;
     
-    
+    // start reading the file line by line 
     while (getline(file, line)) {
+
+        //create a stream of information from the line just read 
         istringstream lineStream(line);
         string code, title, pre;
-        getline(lineStream, code, ',');
-        getline(lineStream, title, ',');
 
+        //check that each line has at least two elments (one for the code and one for the title)
+        if (!getline(lineStream, code, ',')) {
+            cout << "There is a problem with the input file!!" << endl;
+            return;
+        }
+        if (!getline(lineStream, title, ',')) {
+            cout << "There is a problem with the input file!!" << endl;
+            return;
+        }
+
+        //create a vector to hold the prerequisites of each course 
         vector<string> pre_z;
 
+
+        // read the 0 or more course prerequisites and add them to the vector above 
         while (getline(lineStream, pre, ',')) {
             pre_z.push_back(pre);
         }
 
+        //create a new course object from the above info, inser into tree and add into the check vector 
         Course* c = new Course(code, title, pre_z);
         bst->Insert(c);
         check_pre.push_back(c);
@@ -344,6 +366,9 @@ void loadBids(string filePath, BinarySearchTree* bst) {
        
     }   
 
+    //once the entire file is read and processed into the tree, go through each course element in the check vector
+    // and for each element, go through that element's prerequisites and verify that the prerequisite exists in the tree 
+    // as a course object 
     for (Course *c : check_pre) {
         for (string pr : c->pre_reqs) {
             if (!bst->Search(pr)) {
@@ -407,8 +432,8 @@ int main(int argc, char* argv[]) {
             
             cin >> filename;
 
-            // Complete the method call to load the bids
-            loadBids(filename, bst);
+            // Call the load courses function 
+            loadCourses(filename, bst);
 
             //cout << bst->Size() << " bids read" << endl;
 
@@ -419,6 +444,7 @@ int main(int argc, char* argv[]) {
             break;
 
         case 2:
+            // call the in order printing function 
             bst->InOrder();
             break;
 
@@ -427,14 +453,17 @@ int main(int argc, char* argv[]) {
 
             cout << "Please enter the code of the class you want to search for: " << endl;
             cin >> code;
+            // search for the course that contains the specified code 
             c = bst->Search(code);
 
             ticks = clock() - ticks; // current clock ticks minus starting clock ticks
 
+
             if (c) {
-                displayCourse(c, bst);
+                displayCourse(c, bst); // display course if the code was found 
             }
             else {
+                // if we couldn't find the code, let the user know that 
                 cout << "A course with code " << code << " not found." << endl;
             }
 
